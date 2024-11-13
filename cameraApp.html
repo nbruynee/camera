@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera App with Capture, Recording, and Image Download</title>
+  <!-- <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #mainContainer {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      background-color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #capturedImageContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+    }
+    #buttonsContainer {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #capturedImage {
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    #downloadImageLink {
+      display: none;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    #downloadLink {
+      display: none;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+  </style> -->
+  <!-- <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+    #mainContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      width: 100%;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+      background-color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #capturedImageContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    video {
+      width: 100%;
+      height: auto;
+    }
+    #buttonsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    button {
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      flex: 1 1 auto;
+    }
+    #capturedImage {
+      width: 100%;
+      max-width: 250px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    #downloadImageLink, #downloadLink {
+      display: none;
+      margin-top: 10px;
+      font-size: 16px;
+      text-align: center;
+    }
+  
+    /* Responsive styles for mobile */
+    @media (max-width: 768px) {
+      #mainContainer {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      #buttonsContainer {
+        flex-direction: column;
+        width: 100%;
+      }
+      button {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+      }
+      #cameraPreview, #capturedImageContainer {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style> -->
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+    #mainContainer {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      background-color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #capturedImageContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+    }
+    #buttonsContainer {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #capturedImage {
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    #downloadImageLink, #downloadLink {
+      display: none;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+  
+    /* Responsive styles for mobile */
+    @media (max-width: 768px) {
+      #mainContainer {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        width: 100%;
+      }
+      #cameraPreview {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+      }
+      #buttonsContainer {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        justify-content: center;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+      }
+      #capturedImage {
+        max-width: 250px;
+      }
+    }
+  </style>
+  
+
+</head>
+<body>
+
+  <h1>Camera App with Capture, Recording, and Image Download</h1>
+  
+  <!-- Button container -->
+  <div id="buttonsContainer">
+    <button id="captureButton">Open Camera</button>
+    <button id="recordButton" disabled>Start Recording</button>
+    <button id="pauseButton" disabled>Pause Recording</button>
+    <button id="resumeButton" disabled>Resume Recording</button>
+    <button id="stopButton" disabled>Stop Recording</button>
+    <button id="captureImageButton" disabled>Capture Picture</button>
+  </div>
+
+  <!-- Main container for camera preview and captured image preview -->
+  <div id="mainContainer">
+    <!-- Camera preview area -->
+    <div id="cameraPreview">
+      <p style="color: white;">Camera feed will appear here.</p>
+    </div>
+
+    <!-- Captured image and download link -->
+    <div id="capturedImageContainer">
+      <canvas id="capturedImage" style="display:none;"></canvas>
+      <a id="downloadImageLink" href="#" download="captured-image.png">Download Image</a>
+    </div>
+  </div>
+
+  <!-- Download link for recorded video -->
+  <a id="downloadLink" href="#" download="recorded-video.webm">Download Video</a>
+
+  <script>
+    let videoStream;
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    // Function to start the camera and display the video feed
+    document.getElementById('captureButton').addEventListener('click', function() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(stream) {
+            videoStream = stream;
+            let video = document.querySelector('#cameraPreview video');
+            
+            if (!video) {
+              video = document.createElement('video');
+              video.autoplay = true;
+              document.getElementById('cameraPreview').innerHTML = ''; // Clear placeholder text
+              document.getElementById('cameraPreview').appendChild(video);
+            }
+            
+            video.srcObject = stream;
+            document.getElementById('recordButton').disabled = false; // Enable record button
+            document.getElementById('captureImageButton').disabled = false; // Enable capture image button
+          })
+          .catch(function(error) {
+            console.error("Camera access was denied.", error);
+            alert("Camera access denied or not supported on this device.");
+          });
+      } else {
+        alert("Camera access is not supported on this device.");
+      }
+    });
+
+    // Function to start recording
+    document.getElementById('recordButton').addEventListener('click', function() {
+      recordedChunks = []; // Clear previously recorded chunks
+      mediaRecorder = new MediaRecorder(videoStream, { mimeType: 'video/webm' });
+
+      mediaRecorder.ondataavailable = function(event) {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = function() {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        
+        // Show the download link
+        const downloadLink = document.getElementById('downloadLink');
+        downloadLink.href = url;
+        downloadLink.style.display = 'block';
+      };
+
+      mediaRecorder.start();
+      document.getElementById('pauseButton').disabled = false;
+      document.getElementById('stopButton').disabled = false;
+      document.getElementById('recordButton').disabled = true;
+      document.getElementById('resumeButton').disabled = true;
+    });
+
+    // Function to pause recording
+    document.getElementById('pauseButton').addEventListener('click', function() {
+      if (mediaRecorder.state === "recording") {
+        mediaRecorder.pause();
+        document.getElementById('resumeButton').disabled = false;
+        document.getElementById('pauseButton').disabled = true;
+      }
+    });
+
+    // Function to resume recording
+    document.getElementById('resumeButton').addEventListener('click', function() {
+      if (mediaRecorder.state === "paused") {
+        mediaRecorder.resume();
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('pauseButton').disabled = false;
+      }
+    });
+
+    // Function to stop recording
+    document.getElementById('stopButton').addEventListener('click', function() {
+      if (mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        document.getElementById('recordButton').disabled = false;
+        document.getElementById('pauseButton').disabled = true;
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('stopButton').disabled = true;
+      }
+    });
+
+    // Function to capture an image from the video feed
+    document.getElementById('captureImageButton').addEventListener('click', function() {
+      const video = document.querySelector('#cameraPreview video');
+      const canvas = document.getElementById('capturedImage');
+      const context = canvas.getContext('2d');
+
+      // Set canvas dimensions to video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw the current video frame onto the canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Display the canvas with the captured image
+      canvas.style.display = 'block';
+
+      // Generate a data URL and set it as the href for the download link
+      const imageDataUrl = canvas.toDataURL('image/png');
+      const downloadImageLink = document.getElementById('downloadImageLink');
+      downloadImageLink.href = imageDataUrl;
+      downloadImageLink.style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
