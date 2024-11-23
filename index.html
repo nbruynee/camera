@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera App with Timer and Download Options</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 10px;
+      background-color: #f4f4f4;
+    }
+    #mainContainer {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      max-width: 1200px;
+    }
+    #optionsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 300px;
+      width: 100%;
+    }
+    #buttonsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button {
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      width: 100%;
+      border-radius: 15px;
+    }
+    button:hover {
+      background-color: #adb5bd;
+    }
+    #timer {
+      font-size: 18px;
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-width: 600px;
+      height: 290px;
+      border: 1px solid #ccc;
+      background-color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #cameraPreview video {
+      width: 100%;
+      height: 100%;
+      border-radius: 15px;
+    }
+    #downloadLinks {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #downloadLinks a {
+      display: block;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="mainContainer">
+    <!-- Options and Buttons -->
+    <div id="optionsContainer">
+      <div id="buttonsContainer">
+        <button id="captureButton">Open Camera</button>
+        <button id="recordButton" disabled>Start Recording</button>
+        <button id="pauseButton" disabled>Pause Recording</button>
+        <button id="resumeButton" disabled>Resume Recording</button>
+        <button id="stopButton" disabled>Stop Recording</button>
+        <button id="captureImageButton" disabled>Capture Picture</button>
+      </div>
+      <div id="timer">00:00</div>
+    </div>
+
+    <!-- Camera and Downloads -->
+    <div>
+      <div id="cameraPreview">
+        <p style="color: white;">Camera feed will appear here.</p>
+      </div>
+      <div id="downloadLinks">
+        <a id="downloadLink" href="#" download="recorded-video.webm" style="display: none;">Download Video</a>
+        <a id="downloadImageLink" href="#" download="captured-image.png" style="display: none;">Download Image</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let videoStream;
+    let mediaRecorder;
+    let recordedChunks = [];
+    let timerInterval;
+    let timer = 0;
+
+    const timerDisplay = document.getElementById('timer');
+
+    // Format time into mm:ss
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Update timer
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timer++;
+        timerDisplay.textContent = formatTime(timer);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    // Start the camera
+    document.getElementById('captureButton').addEventListener('click', function() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(stream) {
+            videoStream = stream;
+            let video = document.createElement('video');
+            video.autoplay = true;
+            video.srcObject = stream;
+
+            const cameraPreview = document.getElementById('cameraPreview');
+            cameraPreview.innerHTML = '';
+            cameraPreview.appendChild(video);
+
+            document.getElementById('recordButton').disabled = false;
+            document.getElementById('captureImageButton').disabled = false;
+          })
+          .catch(function(error) {
+            alert("Camera access denied or not supported.");
+          });
+      } else {
+        alert("Camera not supported on this device.");
+      }
+    });
+
+    // Start recording
+    document.getElementById('recordButton').addEventListener('click', function() {
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(videoStream, { mimeType: 'video/webm' });
+
+      mediaRecorder.ondataavailable = function(event) {
+        if (event.data.size > 0) recordedChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = function() {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.getElementById('downloadLink');
+        downloadLink.href = url;
+        downloadLink.style.display = 'block';
+      };
+
+      mediaRecorder.start();
+      timer = 0;
+      startTimer();
+
+      document.getElementById('recordButton').disabled = true;
+      document.getElementById('pauseButton').disabled = false;
+      document.getElementById('stopButton').disabled = false;
+    });
+
+    // Pause recording
+    document.getElementById('pauseButton').addEventListener('click', function() {
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.pause();
+        stopTimer();
+        document.getElementById('pauseButton').disabled = true;
+        document.getElementById('resumeButton').disabled = false;
+      }
+    });
+
+    // Resume recording
+    document.getElementById('resumeButton').addEventListener('click', function() {
+      if (mediaRecorder.state === 'paused') {
+        mediaRecorder.resume();
+        startTimer();
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('pauseButton').disabled = false;
+      }
+    });
+
+    // Stop recording
+    document.getElementById('stopButton').addEventListener('click', function() {
+      mediaRecorder.stop();
+      stopTimer();
+      document.getElementById('recordButton').disabled = false;
+      document.getElementById('pauseButton').disabled = true;
+      document.getElementById('resumeButton').disabled = true;
+      document.getElementById('stopButton').disabled = true;
+    });
+
+    // Capture image
+    document.getElementById('captureImageButton').addEventListener('click', function() {
+      const video = document.querySelector('#cameraPreview video');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageDataUrl = canvas.toDataURL('image/png');
+      const downloadImageLink = document.getElementById('downloadImageLink');
+      downloadImageLink.href = imageDataUrl;
+      downloadImageLink.style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
